@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CariKerja - Platform Pencarian Lowongan Kerja Terintegrasi</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts for Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation Header -->
+        <header class="main-header">
+            <div class="logo">
+                <span class="logo-accent">Cari</span>Kerja
+            </div>
+            <nav class="nav-links">
+                <a href="#" class="active" id="btn-seeker-tab">Pencari Kerja</a>
+                <a href="#" id="btn-employer-tab">Recruiter Portal</a>
+            </nav>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="content-wrapper">
+            <div id="loading-indicator" class="loading">Loading data dari GraphQL API...</div>
+            <div id="error-indicator" class="error-msg" style="display: none;"></div>
+
+            <!-- Content will be rendered dynamically by app.js -->
+            <section id="seeker-section" class="tab-content active">
+                <div class="hero-search">
+                    <h1>Temukan Pekerjaan Impian Anda</h1>
+                    <p>Cari lowongan kerja terbaik dari perusahaan terkemuka di Indonesia</p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
