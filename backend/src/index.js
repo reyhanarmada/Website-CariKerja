@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 
 import { typeDefs } from './schema/index.js';
 import { resolvers } from './resolvers/index.js';
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
@@ -31,7 +32,25 @@ app.use(
   cors(),
   bodyParser.json(),
   expressMiddleware(server, {
-    context: async ({ req }) => ({ token: req.headers.token }),
+    context: async ({ req }) => {
+      const authHeader = req.headers.authorization || '';
+      let token = '';
+      if (authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      } else {
+        token = req.headers.token || '';
+      }
+
+      let user = null;
+      if (token) {
+        try {
+          user = jwt.verify(token, process.env.JWT_SECRET || 'supersecretkey');
+        } catch (err) {
+          console.warn('Invalid token in request:', err.message);
+        }
+      }
+      return { token, user };
+    },
   }),
 );
 

@@ -1,5 +1,6 @@
 import { jobTypeDefs } from './job.js';
 import { applicationTypeDefs } from './application.js';
+import { userTypeDefs } from './user.js';
 
 const baseTypeDefs = `#graphql
   type Query {
@@ -11,4 +12,4 @@ const baseTypeDefs = `#graphql
   }
 `;
 
-export const typeDefs = [baseTypeDefs, jobTypeDefs, applicationTypeDefs];
+export const typeDefs = [baseTypeDefs, jobTypeDefs, applicationTypeDefs, userTypeDefs];

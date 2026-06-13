@@ -8,7 +8,7 @@
     <!-- Google Fonts for Modern Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app-container">
@@ -17,9 +17,29 @@
             <div class="logo">
                 <span class="logo-accent">Cari</span>Kerja
             </div>
-            <nav class="nav-links">
-                <a href="#" class="active" id="btn-seeker-tab">Pencari Kerja</a>
-                <a href="#" id="btn-employer-tab">Recruiter Portal</a>
+            <nav class="nav-links" id="header-nav">
+                <a href="#" class="active" id="btn-seeker-tab" style="display: none;">Cari Lowongan</a>
+                <a href="#" id="btn-seeker-history-tab" style="display: none;">Riwayat Lamaran</a>
+                <a href="#" id="btn-saved-jobs-tab" style="display: none;">Lowongan Tersimpan</a>
+                <a href="#" id="btn-profile-tab" style="display: none;">Profil Saya</a>
+                <a href="#" id="btn-employer-tab" style="display: none;">Recruiter Portal</a>
+
+                <!-- Notification Bell -->
+                <div class="notification-bell" id="bell-container" style="position: relative; cursor: pointer; display: none; margin-left: 1.25rem; align-self: center; height: 24px;">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="color: var(--text-secondary); transition: var(--transition-smooth);">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span class="bell-badge" id="bell-badge-count" style="position: absolute; top: -5px; right: -5px; background: var(--accent-danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; font-weight: bold; display: none; line-height: 1;">0</span>
+                    <div class="notif-dropdown" id="notif-dropdown" style="display: none; position: absolute; top: 35px; right: 0; background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); width: 320px; max-height: 400px; overflow-y: auto; box-shadow: var(--shadow-lg); z-index: 1000; padding: 0.75rem;">
+                        <h4 style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.25rem; font-size: 0.9rem; color: var(--text-primary);">Notifikasi</h4>
+                        <div id="notif-list-body" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <!-- Rendered notifications -->
+                        </div>
+                    </div>
+                </div>
+
+                <span id="user-info" style="display: none; color: var(--text-secondary); margin-left: 1rem; align-self: center; font-size: 0.95rem;"></span>
+                <a href="#" id="btn-logout" style="display: none; color: var(--accent-danger); font-weight: 600;">Keluar</a>
             </nav>
         </header>
 
@@ -28,15 +48,210 @@
             <div id="loading-indicator" class="loading">Loading data dari GraphQL API...</div>
             <div id="error-indicator" class="error-msg" style="display: none;"></div>
 
+            <!-- Auth Landing View (shown when user is logged out) -->
+            <section id="auth-landing" class="tab-content" style="display: none; text-align: center; padding: 4rem 2rem;">
+                <div class="hero-search">
+                    <h1>Selamat Datang di <span class="logo-accent">Cari</span>Kerja</h1>
+                    <p>Temukan pekerjaan impian Anda atau rekrut talenta terbaik untuk perusahaan Anda</p>
+                    <div style="display: flex; justify-content: center; gap: 1.5rem; margin-top: 2.5rem; flex-wrap: wrap;">
+                        <button id="btn-show-login" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.85rem 2.5rem;">Masuk (Login)</button>
+                        <button id="btn-show-register" class="btn btn-secondary" style="font-size: 1.1rem; padding: 0.85rem 2.5rem;">Daftar (Register)</button>
+                    </div>
+                </div>
+            </section>
+
             <!-- Content will be rendered dynamically by app.js -->
-            <section id="seeker-section" class="tab-content active">
+            <section id="seeker-section" class="tab-content">
                 <div class="hero-search">
                     <h1>Temukan Pekerjaan Impian Anda</h1>
                     <p>Cari lowongan kerja terbaik dari perusahaan terkemuka di Indonesia</p>
                 </div>
             </section>
+            
+            <section id="seeker-history-section" class="tab-content" style="display: none;"></section>
+            <section id="saved-jobs-section" class="tab-content" style="display: none;"></section>
+            <section id="profile-section" class="tab-content" style="display: none;"></section>
+            <section id="job-applicants-section" class="tab-content" style="display: none;"></section>
         </main>
     </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal-overlay">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 class="modal-title">Masuk ke Akun Anda</h3>
+          <button class="modal-close-btn" id="btn-close-login">&times;</button>
+        </div>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-email">Alamat Email</label>
+            <input type="email" id="login-email" placeholder="contoh@domain.com" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="Masukkan password Anda" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Masuk</button>
+          <p style="text-align: center; margin-top: 1.25rem; font-size: 0.9rem; color: var(--text-secondary);">
+            Belum punya akun? <a href="#" id="link-to-register" style="color: var(--accent-blue); text-decoration: none; font-weight: 600;">Daftar di sini</a>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="modal-overlay">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 class="modal-title">Daftar Akun Baru</h3>
+          <button class="modal-close-btn" id="btn-close-register">&times;</button>
+        </div>
+        <form id="register-form">
+          <div class="form-group">
+            <label for="register-name">Nama Lengkap</label>
+            <input type="text" id="register-name" placeholder="Masukkan nama lengkap" required>
+          </div>
+          <div class="form-group">
+            <label for="register-email">Alamat Email</label>
+            <input type="email" id="register-email" placeholder="contoh@domain.com" required>
+          </div>
+          <div class="form-group">
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" placeholder="Minimal 6 karakter" minlength="6" required>
+          </div>
+          <div class="form-group">
+            <label for="register-role">Peran (Role)</label>
+            <select id="register-role" required style="padding: 0.75rem 1rem;">
+              <option value="seeker">Pencari Kerja (Seeker)</option>
+              <option value="recruiter">Perekrut (Recruiter)</option>
+            </select>
+          </div>
+          <div class="form-group" id="register-company-group" style="display: none;">
+            <label for="register-company">Nama Perusahaan</label>
+            <input type="text" id="register-company" placeholder="Masukkan nama perusahaan Anda">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Daftar</button>
+          <p style="text-align: center; margin-top: 1.25rem; font-size: 0.9rem; color: var(--text-secondary);">
+            Sudah punya akun? <a href="#" id="link-to-login" style="color: var(--accent-blue); text-decoration: none; font-weight: 600;">Masuk di sini</a>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Applicants Modal -->
+    <div id="applicants-modal" class="modal-overlay">
+      <div class="modal-box" style="max-width: 900px; width: 95%;">
+        <div class="modal-header">
+          <h3 class="modal-title" id="applicants-modal-title">Daftar Pelamar</h3>
+          <button class="modal-close-btn" id="btn-close-applicants">&times;</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nama Pelamar</th>
+                <th>Email</th>
+                <th>Resume</th>
+                <th>Tanggal Melamar</th>
+                <th>Status</th>
+                <th>Kelola Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="modal-applicants-list-body">
+              <!-- Rendered applicants list inside modal -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Job Modal -->
+    <div id="create-job-modal" class="modal-overlay">
+      <div class="modal-box" style="max-width: 700px; width: 95%;">
+        <div class="modal-header">
+          <h3 class="modal-title">Posting Lowongan Pekerjaan Baru</h3>
+          <button class="modal-close-btn" id="btn-close-create-job">&times;</button>
+        </div>
+        <form id="create-job-form-modal">
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label for="job-title-modal">Nama Jabatan / Posisi</label>
+              <input type="text" id="job-title-modal" placeholder="Misal: Senior React Developer" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="job-location-modal">Lokasi</label>
+              <input type="text" id="job-location-modal" placeholder="Misal: Jakarta Selatan, Indonesia" required>
+            </div>
+            <div class="form-group">
+              <label for="job-salary-modal">Gaji Per Bulan (Opsional)</label>
+              <input type="text" id="job-salary-modal" placeholder="Misal: Rp 15.000.000 - Rp 20.000.000">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="job-category-modal">Kategori Bidang</label>
+              <select id="job-category-modal" required>
+                <option value="Teknologi Informasi">Teknologi Informasi</option>
+                <option value="Desain Kreatif">Desain Kreatif</option>
+                <option value="Pemasaran & Penjualan">Pemasaran & Penjualan</option>
+                <option value="Penulisan & Konten">Penulisan & Konten</option>
+                <option value="Keuangan & Akuntansi">Keuangan & Akuntansi</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="job-type-modal">Tipe Lowongan</label>
+              <select id="job-type-modal" required>
+                <option value="Full-time">Full-time (Penuh Waktu)</option>
+                <option value="Part-time">Part-time (Paruh Waktu)</option>
+                <option value="Remote">Remote (Kerja Jarak Jauh)</option>
+                <option value="Contract">Kontrak</option>
+                <option value="Internship">Magang</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="job-created-at-modal">Tanggal Upload</label>
+              <input type="date" id="job-created-at-modal" readonly style="background-color: rgba(255,255,255,0.05); cursor: not-allowed;">
+            </div>
+            <div class="form-group">
+              <label for="job-deadline-modal">Deadline Pendaftaran</label>
+              <input type="date" id="job-deadline-modal" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="job-status-modal">Status Lowongan</label>
+              <select id="job-status-modal" required>
+                <option value="Available">Available (Tersedia)</option>
+                <option value="Full">Full (Penuh)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="job-min-education-modal">Kualifikasi Pendidikan Minimal</label>
+              <select id="job-min-education-modal" required style="padding: 0.75rem 1rem;">
+                <option value="SMA/MA/SMK">SMA/MA/SMK</option>
+                <option value="D3">D3</option>
+                <option value="S1">S1</option>
+                <option value="S2">S2</option>
+                <option value="Freshgraduate">Freshgraduate</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="job-description-modal">Deskripsi Pekerjaan & Persyaratan</label>
+            <textarea id="job-description-modal" rows="6" placeholder="Tuliskan detail pekerjaan, tugas, kualifikasi pelamar..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+            Posting Lowongan Kerja
+          </button>
+        </form>
+      </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>

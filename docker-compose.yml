@@ -8,34 +8,115 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: jobstreet_db
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d jobstreet_db"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - jobstreet_network
 
-  backend:
-    build: ./backend
-    container_name: jobstreet_backend_container
+  auth-service:
+    build: ./backend/auth-service
+    container_name: jobstreet_auth_service_container
+    restart: always
+    ports:
+      - "4001:4001"
+    environment:
+      - PORT=4001
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=auth_db
+      - JWT_SECRET=supersecretkey
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "node", "-e", "fetch('http://127.0.0.1:4001/health').then(res => res.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jobstreet_network
+
+  job-service:
+    build: ./backend/job-service
+    container_name: jobstreet_job_service_container
+    restart: always
+    ports:
+      - "4002:4002"
+    environment:
+      - PORT=4002
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=jobs_db
+      - JWT_SECRET=supersecretkey
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "node", "-e", "fetch('http://127.0.0.1:4002/health').then(res => res.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jobstreet_network
+
+  application-service:
+    build: ./backend/application-service
+    container_name: jobstreet_application_service_container
+    restart: always
+    ports:
+      - "4003:4003"
+    environment:
+      - PORT=4003
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=applications_db
+      - JWT_SECRET=supersecretkey
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "node", "-e", "fetch('http://127.0.0.1:4003/health').then(res => res.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jobstreet_network
+
+  api-gateway:
+    build: ./backend/api-gateway
+    container_name: jobstreet_api_gateway_container
     restart: always
     ports:
       - "4000:4000"
     environment:
       - PORT=4000
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=jobstreet_db
+      - AUTH_SERVICE_URL=http://auth-service:4001/graphql
+      - JOB_SERVICE_URL=http://job-service:4002/graphql
+      - APPLICATION_SERVICE_URL=http://application-service:4003/graphql
     depends_on:
-      db:
+      auth-service:
         condition: service_healthy
+      job-service:
+        condition: service_healthy
+      application-service:
+        condition: service_healthy
+    networks:
+      - jobstreet_network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -49,7 +130,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
+    networks:
+      - jobstreet_network
 
 volumes:
   postgres_data:
+
+networks:
+  jobstreet_network:
+    driver: bridge
