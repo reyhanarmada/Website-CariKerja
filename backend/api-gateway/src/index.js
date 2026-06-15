@@ -93,5 +93,5 @@ app.get('/health', (req, res) => {
 });
 
 const PORT = process.env.PORT || 4000;
-await new Promise((resolve) => httpServer.listen({ port: PORT }, resolve));
+await new Promise((resolve) => httpServer.listen({ port: PORT, host: '0.0.0.0' }, resolve));
 console.log(`🚀 API Gateway running at http://localhost:${PORT}/graphql`);

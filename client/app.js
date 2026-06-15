@@ -370,30 +370,24 @@ function switchTab(tab) {
 // ----------------------------------------------------
 async function loadSeekerPortal() {
   seekerSection.innerHTML = `
-    <div class="hero-search">
-      <h1>Temukan Pekerjaan Impian Anda</h1>
-      <p>Cari lowongan kerja terbaik dari perusahaan terkemuka di Indonesia</p>
-      
-      <div class="search-container">
-        <div class="search-input-group">
-          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-          <input type="text" id="search-keyword" placeholder="Kata kunci pekerjaan, keahlian, atau perusahaan...">
-        </div>
-        <div class="search-input-group">
-          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-          <input type="text" id="search-location" placeholder="Kota atau provinsi...">
-        </div>
-        <div class="search-input-group">
-          <select id="search-category">
+    <div class="hero-search-jobstreet">
+      <div>
+        <h1 style="color: white; margin-bottom: 1rem; font-size: 2rem;">Cari lowongan kerja terbaru</h1>
+        
+        <div class="search-container jobstreet-search">
+          <div class="search-input-group">
+            <svg width="20" height="20" fill="none" stroke="#666" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <input type="text" id="search-keyword" placeholder="Jelaskan posisi yang kamu cari (jabatan, industri, skill...)">
+          </div>
+          <div class="search-input-group">
+            <svg width="20" height="20" fill="none" stroke="#666" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <input type="text" id="search-location" placeholder="Masukkan kota atau wilayah">
+          </div>
+          <select id="search-category" style="display: none;">
             <option value="">Semua Kategori</option>
-            <option value="Teknologi Informasi">Teknologi Informasi</option>
-            <option value="Desain Kreatif">Desain Kreatif</option>
-            <option value="Pemasaran & Penjualan">Pemasaran & Penjualan</option>
-            <option value="Penulisan & Konten">Penulisan & Konten</option>
-            <option value="Keuangan & Akuntansi">Keuangan & Akuntansi</option>
           </select>
+          <button id="btn-search" class="search-btn jobstreet-btn">Cari</button>
         </div>
-        <button id="btn-search" class="search-btn">Cari</button>
       </div>
     </div>
 
@@ -402,7 +396,22 @@ async function loadSeekerPortal() {
         <!-- Rendered jobs list -->
       </div>
       <div class="job-detail-pane" id="job-detail-container">
-        <div class="no-data">Pilih salah satu lowongan pekerjaan di sebelah kiri untuk melihat detail.</div>
+        <!-- Empty state like Jobstreet -->
+        <div class="empty-detail-jobstreet">
+          <h3>&larr; Pilih lowongan kerja</h3>
+          <p>Tampilkan detail di sini</p>
+          <div class="empty-illustration">
+             <svg viewBox="0 0 200 200" width="200" height="200">
+                <circle cx="100" cy="100" r="80" fill="#fce4ec"/>
+                <rect x="60" y="60" width="80" height="100" rx="8" fill="#fff" stroke="#e0e0e0" stroke-width="4"/>
+                <rect x="70" y="70" width="60" height="20" rx="4" fill="#0d3880"/>
+                <rect x="70" y="100" width="40" height="8" rx="4" fill="#e0e0e0"/>
+                <rect x="70" y="115" width="60" height="8" rx="4" fill="#e0e0e0"/>
+                <!-- Cursor arrow -->
+                <path d="M110 130 L130 150 L120 155 L110 130" fill="#e91e63"/>
+             </svg>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -593,7 +602,23 @@ function renderJobDetails() {
   const detailPane = document.getElementById('job-detail-container');
   const job = jobsState.find(j => j.id === selectedJobId);
   if (!job) {
-    detailPane.innerHTML = '<div class="no-data">Lowongan tidak ditemukan.</div>';
+    detailPane.innerHTML = `
+      <div class="empty-detail-jobstreet">
+        <h3>&larr; Pilih lowongan kerja</h3>
+        <p>Tampilkan detail di sini</p>
+        <div class="empty-illustration">
+           <svg viewBox="0 0 200 200" width="200" height="200">
+              <circle cx="100" cy="100" r="80" fill="#fce4ec"/>
+              <rect x="60" y="60" width="80" height="100" rx="8" fill="#fff" stroke="#e0e0e0" stroke-width="4"/>
+              <rect x="70" y="70" width="60" height="20" rx="4" fill="#0d3880"/>
+              <rect x="70" y="100" width="40" height="8" rx="4" fill="#e0e0e0"/>
+              <rect x="70" y="115" width="60" height="8" rx="4" fill="#e0e0e0"/>
+              <!-- Cursor arrow -->
+              <path d="M110 130 L130 150 L120 155 L110 130" fill="#e91e63"/>
+           </svg>
+        </div>
+      </div>
+    `;
     return;
   }
 

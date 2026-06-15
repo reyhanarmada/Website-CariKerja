@@ -61,5 +61,5 @@ app.get('/health', (req, res) => {
 });
 
 const PORT = process.env.PORT || 4002;
-await new Promise((resolve) => httpServer.listen({ port: PORT }, resolve));
+await new Promise((resolve) => httpServer.listen({ port: PORT, host: '0.0.0.0' }, resolve));
 console.log(`🚀 job-service running at http://localhost:${PORT}/graphql`);
