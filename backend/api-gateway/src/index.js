@@ -17,6 +17,9 @@ const subgraphs = [
   { name: 'auth', url: process.env.AUTH_SERVICE_URL || 'http://auth-service:4001/graphql' },
   { name: 'jobs', url: process.env.JOB_SERVICE_URL || 'http://job-service:4002/graphql' },
   { name: 'applications', url: process.env.APPLICATION_SERVICE_URL || 'http://application-service:4003/graphql' },
+  { name: 'profiles', url: process.env.PROFILE_SERVICE_URL || 'http://profile-service:4004/graphql' },
+  { name: 'companies', url: process.env.COMPANY_SERVICE_URL || 'http://company-service:4005/graphql' },
+  { name: 'interviews', url: process.env.INTERVIEW_SERVICE_URL || 'http://interview-service:4006/graphql' },
 ];
 
 // Wait for all subgraphs to be fully online and responsive before initializing ApolloGateway

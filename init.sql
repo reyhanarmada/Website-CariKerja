@@ -2,6 +2,9 @@
 CREATE DATABASE auth_db;
 CREATE DATABASE jobs_db;
 CREATE DATABASE applications_db;
+CREATE DATABASE profiles_db;
+CREATE DATABASE companies_db;
+CREATE DATABASE interviews_db;
 
 -- ==========================================
 -- 1. SETUP AUTH DATABASE
@@ -126,3 +129,66 @@ CREATE TABLE IF NOT EXISTS messages (
 
 -- Reset sequence
 SELECT setval('applications_id_seq', COALESCE((SELECT MAX(id) FROM applications), 1));
+
+-- ==========================================
+-- 4. SETUP PROFILES DATABASE
+-- ==========================================
+\c profiles_db
+
+CREATE TABLE IF NOT EXISTS seeker_profiles (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+    bio TEXT,
+    education TEXT,
+    experience TEXT,
+    skills TEXT,
+    resume_url TEXT,
+    portfolio_url TEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ==========================================
+-- 5. SETUP COMPANIES DATABASE
+-- ==========================================
+\c companies_db
+
+CREATE TABLE IF NOT EXISTS company_profiles (
+    id SERIAL PRIMARY KEY,
+    recruiter_id INT NOT NULL UNIQUE,
+    company_name VARCHAR(255) NOT NULL,
+    description TEXT,
+    industry VARCHAR(100),
+    location VARCHAR(255),
+    website_url TEXT,
+    logo_url TEXT,
+    culture_description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS company_reviews (
+    id SERIAL PRIMARY KEY,
+    company_id INT REFERENCES company_profiles(id) ON DELETE CASCADE,
+    reviewer_id INT NOT NULL,
+    rating INT CHECK (rating >= 1 AND rating <= 5),
+    review_text TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ==========================================
+-- 6. SETUP INTERVIEWS DATABASE
+-- ==========================================
+\c interviews_db
+
+CREATE TABLE IF NOT EXISTS interview_schedules (
+    id SERIAL PRIMARY KEY,
+    application_id INT NOT NULL,
+    job_id INT NOT NULL,
+    recruiter_id INT NOT NULL,
+    applicant_id INT NOT NULL,
+    interview_date DATE NOT NULL,
+    interview_time VARCHAR(50) NOT NULL,
+    meeting_link TEXT,
+    status VARCHAR(50) DEFAULT 'Scheduled',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

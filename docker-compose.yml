@@ -97,6 +97,81 @@ services:
     networks:
       - jobstreet_network
 
+  profile-service:
+    build: ./backend/profile-service
+    container_name: jobstreet_profile_service_container
+    restart: always
+    ports:
+      - "4004:4004"
+    environment:
+      - PORT=4004
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=profiles_db
+      - JWT_SECRET=supersecretkey
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "node", "-e", "fetch('http://127.0.0.1:4004/health').then(res => res.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jobstreet_network
+
+  company-service:
+    build: ./backend/company-service
+    container_name: jobstreet_company_service_container
+    restart: always
+    ports:
+      - "4005:4005"
+    environment:
+      - PORT=4005
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=companies_db
+      - JWT_SECRET=supersecretkey
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "node", "-e", "fetch('http://127.0.0.1:4005/health').then(res => res.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jobstreet_network
+
+  interview-service:
+    build: ./backend/interview-service
+    container_name: jobstreet_interview_service_container
+    restart: always
+    ports:
+      - "4006:4006"
+    environment:
+      - PORT=4006
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=interviews_db
+      - JWT_SECRET=supersecretkey
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "node", "-e", "fetch('http://127.0.0.1:4006/health').then(res => res.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jobstreet_network
+
   api-gateway:
     build: ./backend/api-gateway
     container_name: jobstreet_api_gateway_container
@@ -108,12 +183,21 @@ services:
       - AUTH_SERVICE_URL=http://auth-service:4001/graphql
       - JOB_SERVICE_URL=http://job-service:4002/graphql
       - APPLICATION_SERVICE_URL=http://application-service:4003/graphql
+      - PROFILE_SERVICE_URL=http://profile-service:4004/graphql
+      - COMPANY_SERVICE_URL=http://company-service:4005/graphql
+      - INTERVIEW_SERVICE_URL=http://interview-service:4006/graphql
     depends_on:
       auth-service:
         condition: service_healthy
       job-service:
         condition: service_healthy
       application-service:
+        condition: service_healthy
+      profile-service:
+        condition: service_healthy
+      company-service:
+        condition: service_healthy
+      interview-service:
         condition: service_healthy
     networks:
       - jobstreet_network
