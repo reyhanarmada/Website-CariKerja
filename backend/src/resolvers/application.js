@@ -32,6 +32,14 @@ export const applicationResolvers = {
     applyJob: async (_, { input }) => {
       const { jobId, applicantName, applicantEmail, resumeUrl } = input;
       try {
+        // Cek duplicate
+        const { rows: existingApps } = await pool.query(
+          'SELECT id FROM applications WHERE job_id = $1 AND applicant_email = $2',
+          [jobId, applicantEmail]
+        );
+        if (existingApps.length > 0) {
+          throw new Error('Anda sudah mengirimkan lamaran untuk pekerjaan ini.');
+        }
         // Cek apakah lowongan kerja ada
         const jobCheck = await pool.query('SELECT id FROM jobs WHERE id = $1', [jobId]);
         if (jobCheck.rows.length === 0) {
