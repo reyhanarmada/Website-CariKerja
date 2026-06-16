@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   db:
+    platform: linux/amd64
     image: postgres:15-alpine
     container_name: jobstreet_db_container
     restart: always
@@ -23,6 +24,7 @@ services:
       - jobstreet_network
 
   auth-service:
+    platform: linux/amd64
     build: ./backend/auth-service
     container_name: jobstreet_auth_service_container
     restart: always
@@ -48,6 +50,7 @@ services:
       - jobstreet_network
 
   job-service:
+    platform: linux/amd64
     build: ./backend/job-service
     container_name: jobstreet_job_service_container
     restart: always
@@ -73,6 +76,7 @@ services:
       - jobstreet_network
 
   application-service:
+    platform: linux/amd64
     build: ./backend/application-service
     container_name: jobstreet_application_service_container
     restart: always
@@ -98,6 +102,7 @@ services:
       - jobstreet_network
 
   profile-service:
+    platform: linux/amd64
     build: ./backend/profile-service
     container_name: jobstreet_profile_service_container
     restart: always
@@ -123,6 +128,7 @@ services:
       - jobstreet_network
 
   company-service:
+    platform: linux/amd64
     build: ./backend/company-service
     container_name: jobstreet_company_service_container
     restart: always
@@ -148,6 +154,7 @@ services:
       - jobstreet_network
 
   interview-service:
+    platform: linux/amd64
     build: ./backend/interview-service
     container_name: jobstreet_interview_service_container
     restart: always
@@ -173,6 +180,7 @@ services:
       - jobstreet_network
 
   api-gateway:
+    platform: linux/amd64
     build: ./backend/api-gateway
     container_name: jobstreet_api_gateway_container
     restart: always
@@ -203,6 +211,7 @@ services:
       - jobstreet_network
 
   pgadmin:
+    platform: linux/amd64
     image: dpage/pgadmin4
     container_name: jobstreet_pgadmin_container
     restart: always

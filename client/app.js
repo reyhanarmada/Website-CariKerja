@@ -257,7 +257,7 @@ function setupAuthUI() {
 }
 
 // Check auth state and render dynamic components
-function checkAuthAndRender() {
+async function checkAuthAndRender() {
   if (!token || !currentUser) {
     if (authLanding) authLanding.style.display = 'block';
     if (seekerSection) seekerSection.style.display = 'none';
@@ -287,7 +287,8 @@ function checkAuthAndRender() {
 
       setupNotificationBell();
       loadNotifications();
-      fetchSavedJobIds();
+      await fetchSavedJobIds();
+      await fetchAppliedJobIds();
       switchTab('seeker');
     } else if (currentUser.role === 'recruiter') {
       if (btnSeekerTab) btnSeekerTab.style.display = 'none';
@@ -500,7 +501,9 @@ async function fetchAndRenderJobs() {
 
 function renderJobList() {
   const container = document.getElementById('job-list-container');
-  if (jobsState.length === 0) {
+  const unappliedJobs = jobsState.filter(job => !appliedJobIds.includes(job.id));
+
+  if (unappliedJobs.length === 0) {
     container.innerHTML = `
       <div class="no-data" style="padding: 2.5rem 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
         <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" style="color: var(--text-secondary); opacity: 0.5;">
@@ -518,7 +521,7 @@ function renderJobList() {
     return;
   }
 
-  container.innerHTML = jobsState.map(job => {
+  container.innerHTML = unappliedJobs.map(job => {
     const logoHtml = job.logoUrl
       ? `<img src="${job.logoUrl}" alt="${job.company} Logo" style="width: 40px; height: 40px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;">`
       : `<div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; font-size: 1.1rem; flex-shrink: 0;">${job.company.charAt(0).toUpperCase()}</div>`;
@@ -544,9 +547,9 @@ function renderJobList() {
   // If a job is already selected, make sure details are shown
   if (selectedJobId) {
     renderJobDetails();
-  } else if (jobsState.length > 0) {
+  } else if (unappliedJobs.length > 0) {
     // Proactively select the first job
-    selectJob(jobsState[0].id);
+    selectJob(unappliedJobs[0].id);
   }
 }
 
@@ -645,8 +648,16 @@ function renderJobDetails() {
     statusBadgeHtml = `<span style="background-color: rgba(239, 68, 68, 0.15); color: var(--accent-danger); padding: 0.25rem 0.65rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.8rem; border: 1px solid rgba(239, 68, 68, 0.25);">Closed / Penuh</span>`;
   }
 
+  const isApplied = appliedJobIds.includes(job.id);
   let actionButtonHtml = '';
-  if (isClosedStatus) {
+  if (isApplied) {
+    actionButtonHtml = `
+      <button class="btn btn-secondary" disabled style="background-color: #10b981; color: white; cursor: not-allowed; opacity: 0.8; box-shadow: none; display: inline-flex; align-items: center; gap: 0.25rem;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        Sudah Dilamar
+      </button>
+    `;
+  } else if (isClosedStatus) {
     actionButtonHtml = `
       <button class="btn btn-secondary" disabled style="background-color: #4b5563; color: #d1d5db; cursor: not-allowed; opacity: 0.8; box-shadow: none;">
         Lamar Pekerjaan Ini
@@ -817,8 +828,20 @@ async function submitApplication(e) {
     });
     alert('Lamaran Anda berhasil dikirim!');
     closeApplyModal();
-    // Refetch details to update applicantCount in real-time
-    await selectJob(jobId.toString());
+    
+    if (!appliedJobIds.includes(jobId.toString())) {
+      appliedJobIds.push(jobId.toString());
+    }
+    
+    renderJobList();
+    
+    const unappliedJobs = jobsState.filter(job => !appliedJobIds.includes(job.id));
+    if (unappliedJobs.length > 0) {
+      await selectJob(unappliedJobs[0].id);
+    } else {
+      selectedJobId = null;
+      renderJobDetails();
+    }
   } catch (err) {
     alert(`Gagal melamar pekerjaan: ${err.message}`);
   }
@@ -1050,6 +1073,7 @@ window.updateJobStatusInline = async function (jobId, newStatus) {
 
 // Global state / helper untuk bookmark lowongan
 let savedJobIds = [];
+let appliedJobIds = [];
 
 async function fetchSavedJobIds() {
   if (!token || !currentUser || currentUser.role !== 'seeker') return;
@@ -1065,6 +1089,23 @@ async function fetchSavedJobIds() {
     savedJobIds = data.mySavedJobs.map(j => j.id);
   } catch (err) {
     console.error('Error fetching saved job IDs:', err);
+  }
+}
+
+async function fetchAppliedJobIds() {
+  if (!token || !currentUser || currentUser.role !== 'seeker') return;
+  const query = `
+    query {
+      myApplications {
+        jobId
+      }
+    }
+  `;
+  try {
+    const data = await graphqlRequest(query);
+    appliedJobIds = (data.myApplications || []).map(app => app.jobId);
+  } catch (err) {
+    console.error('Error fetching applied job IDs:', err);
   }
 }
 
