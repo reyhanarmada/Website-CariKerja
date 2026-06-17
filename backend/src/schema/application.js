@@ -24,5 +24,6 @@ export const applicationTypeDefs = `#graphql
   extend type Mutation {
     applyJob(input: ApplicationInput!): Application!
     updateApplicationStatus(id: ID!, status: String!): Application!
+    deleteApplication(id: ID!): Boolean!
   }
 `;
