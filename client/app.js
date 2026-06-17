@@ -2345,7 +2345,24 @@ async function loadSeekerHistoryPortal() {
       // Chat Recruiter button
       const chatBtn = (app.job && app.job.recruiterId)
         ? `<button class="btn btn-secondary btn-sm" onclick="openChatWindow('${app.jobId}', '${app.job.recruiterId}', '${app.job.company.replace(/'/g, "\\'")}')" style="padding: 0.35rem 0.75rem; font-size: 0.85rem;">💬 Chat</button>`
-        : `<span style="color: var(--text-secondary); font-size: 0.82rem;">—</span>`;
+        : '';
+
+      const isFinalized = statusLower.includes('accept') || statusLower === 'acc' || statusLower === 'diterima' || statusLower.includes('reject') || statusLower === 'ditolak';
+      const deleteBtn = isFinalized
+        ? `<button class="btn btn-secondary btn-sm btn-delete" onclick="window.deleteApplication('${app.id}')" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">🗑️ Hapus</button>`
+        : '';
+
+      let actionsCell = '';
+      if (chatBtn || deleteBtn) {
+        actionsCell = `
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            ${chatBtn}
+            ${deleteBtn}
+          </div>
+        `;
+      } else {
+        actionsCell = `<span style="color: var(--text-secondary); font-size: 0.82rem;">—</span>`;
+      }
 
       return `
         <tr>
@@ -2358,7 +2375,7 @@ async function loadSeekerHistoryPortal() {
           <td><span class="badge ${badgeClass}">${app.status}</span></td>
           <td><a href="${app.resumeUrl}" target="_blank" class="tag tag-type btn-resume" style="text-decoration:none;">Buka Resume</a></td>
           <td>${feedbackCell}</td>
-          <td>${chatBtn}</td>
+          <td>${actionsCell}</td>
         </tr>
       `;
     }).join('');
@@ -2612,3 +2629,28 @@ function updateInboxMessagesWidget(messages) {
     `;
   }).join('');
 }
+
+window.deleteApplication = async function (id) {
+  if (!confirm('Apakah Anda yakin ingin menghapus riwayat lamaran ini?')) {
+    return;
+  }
+
+  const mutation = `
+    mutation DeleteApplication($id: ID!) {
+      deleteApplication(id: $id)
+    }
+  `;
+
+  try {
+    const data = await graphqlRequest(mutation, { id });
+    if (data && data.deleteApplication) {
+      await loadSeekerHistoryPortal();
+    } else {
+      alert('Gagal menghapus lamaran.');
+    }
+  } catch (err) {
+    console.error('Error deleting application:', err);
+    alert(`Gagal menghapus lamaran: ${err.message}`);
+  }
+};
+

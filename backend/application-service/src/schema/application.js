@@ -58,5 +58,6 @@ export const applicationTypeDefs = `#graphql
     applyJob(input: ApplicationInput!): Application!
     updateApplicationStatus(id: ID!, status: String!, message: String, interviewDate: String, interviewTime: String): Application!
     sendMessage(jobId: ID!, receiverId: ID!, content: String!): Message!
+    deleteApplication(id: ID!): Boolean!
   }
 `;

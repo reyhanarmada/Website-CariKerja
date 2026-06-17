@@ -470,6 +470,31 @@ export const applicationResolvers = {
         throw new Error('Gagal mengirim pesan.');
       }
     },
+    deleteApplication: async (_, { id }, { user }) => {
+      if (!user) {
+        throw new Error('Anda harus login terlebih dahulu.');
+      }
+      try {
+        const { rows } = await pool.query('SELECT * FROM applications WHERE id = $1', [id]);
+        if (rows.length === 0) {
+          throw new Error('Data lamaran tidak ditemukan.');
+        }
+        const app = rows[0];
+        if (app.applicant_email !== user.email) {
+          throw new Error('Anda tidak memiliki akses untuk menghapus lamaran ini.');
+        }
+        const statusLower = app.status.toLowerCase();
+        const isFinalized = statusLower === 'rejected' || statusLower === 'accepted' || statusLower === 'acc' || statusLower === 'diterima' || statusLower === 'ditolak';
+        if (!isFinalized) {
+          throw new Error('Hanya lamaran dengan status Diterima atau Ditolak yang dapat dihapus.');
+        }
+        await pool.query('DELETE FROM applications WHERE id = $1', [id]);
+        return true;
+      } catch (err) {
+        console.error('Error deleting application:', err);
+        throw new Error(err.message || 'Gagal menghapus lamaran.');
+      }
+    },
   },
   Application: {
     job: (parent) => {

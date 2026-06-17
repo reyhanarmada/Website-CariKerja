@@ -556,6 +556,20 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(15, 76, 57, 0.15);
 }
 
+.btn-delete {
+  color: var(--accent-danger) !important;
+  border-color: rgba(220, 38, 38, 0.2) !important;
+  background-color: rgba(220, 38, 38, 0.02) !important;
+}
+
+.btn-delete:hover {
+  background-color: var(--accent-danger) !important;
+  color: #ffffff !important;
+  border-color: var(--accent-danger) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+}
+
 /* Recruiter Dashboard Bento Grid Layout */
 .recruiter-layout {
   display: flex;
